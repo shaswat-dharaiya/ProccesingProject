@@ -37,10 +37,10 @@ int rot_x, rot_y;
 
 int thrt_val_1=1000,thrt_val_2=1000,thrt_val_3=1000,thrt_val_4=1000,thrt_val=1000,prev_val;
 
-Thrust rot1 = new Thrust(rot1_x,rot1_y,"Rotor 1",thrt_val_1);
-Thrust rot2 = new Thrust(rot2_x,rot2_y,"Rotor 2",thrt_val_2);
-Thrust rot3 = new Thrust(rot3_x,rot3_y,"Rotor 3",thrt_val_3);
-Thrust rot4 = new Thrust(rot4_x,rot4_y,"Rotor 4",thrt_val_4);
+Thrust rot1 = new Thrust(rot1_x,rot1_y,"Rotor 1",thrt_val_1);    //  ccw rotors
+Thrust rot2 = new Thrust(rot2_x,rot2_y,"Rotor 2",thrt_val_2);    //  cw rotors
+Thrust rot3 = new Thrust(rot3_x,rot3_y,"Rotor 3",thrt_val_3);    //  cw rotors
+Thrust rot4 = new Thrust(rot4_x,rot4_y,"Rotor 4",thrt_val_4);    //  ccw rotors
 
 Thrust rot = new Thrust(rot_x,rot_y,"Thrust",thrt_val);
 
@@ -57,20 +57,20 @@ void setup() {
 
   ptch_fwd.posRect(500, 0);
   //hld.posRect(300, 200);
-  ptch_bkd.posRect(500, 150);
-  yaw_cw.posRect(0, 75);
-  yaw_ccw.posRect(200, 75);
+  ptch_bkd.posRect(500, 170);
+  yaw_cw.posRect(0, 85);
+  yaw_ccw.posRect(200, 85);
   thrst.posRect(100, 0);
-  lnd.posRect(100, 150);
-  role_l.posRect(400, 75);
-  role_r.posRect(600, 75);
+  lnd.posRect(100, 170);
+  role_l.posRect(400, 85);
+  role_r.posRect(600, 85);
   
-  rot1.rotDraw(150,0);
-  rot2.rotDraw(300,175);
-  rot4.rotDraw(0,175);
-  rot3.rotDraw(150,325);
   
-  rot.rotDraw(380-(14*width/20),0);
+  rot.rotDraw(320,160);
+  rot1.rotDraw(0,0);
+  rot2.rotDraw(150,0);
+  rot3.rotDraw(0,320);
+  rot4.rotDraw(150,320);
   
   bt1.batDraw(0);
   bt2.batDraw(40);
@@ -88,7 +88,8 @@ void draw() {
   ptch_bkd.drawRect();
   yaw_cw.drawRect();
   yaw_ccw.drawRect();
-  char keytyped;
+  char keytyped = char(65535);
+  
   if(keyPressed || mousePressed)
   {
     keytyped = key;
@@ -108,17 +109,16 @@ void draw() {
       movement(rot1,rot3);
     if(keytyped == yaw_ccw.getDir() || (mouseX >= yaw_ccw.rec_x && mouseX <= (yaw_ccw.rec_x+rectSize) && mouseY >= yaw_ccw.rec_y && mouseY <= (yaw_ccw.rec_y+rectSize) && mousePressed == true))
       movement(rot2,rot4);
-    
   }
   else
   {
-    keytyped = '0';
+    keytyped = char(65535);
     rot1.stThrust(0);
     rot2.stThrust(0);
     rot3.stThrust(0);
     rot4.stThrust(0);
   }
- text(keytyped+":"+mouseX+":"+mouseY,1000,100);
+  text(keytyped+":"+mouseX+":"+mouseY,1000,100);
   
   prev_val = rot.getThrust();
   prev_val = limitR(prev_val);
@@ -127,7 +127,6 @@ void draw() {
   rot3.rotShape();
   rot4.rotShape();
   rot.rotShape();
-  
   
   bt1.batShape();
   bt2.batShape();
@@ -139,7 +138,7 @@ void movement(Thrust t1, Thrust t2)
 }
 class RectDraw
 {
-  int val,thrstVal;
+  int val;
   int rec_x, rec_y;
   String name;
   char dir;
@@ -151,6 +150,7 @@ class RectDraw
     this.dir = dir;
   }
   char getDir(){    return dir;  }
+  
   void posRect(int i, int j)
   {
     rec_x = (width/20)+i;
@@ -160,21 +160,19 @@ class RectDraw
   {
     fill(0);
     if ((mouseX >= rec_x && mouseX <= (rec_x+rectSize) && mouseY >= rec_y && mouseY <= (rec_y+rectSize) && mousePressed == true) || ( keyPressed == true && key == dir))
-    {
       fill(50);
-    }
     rect(rec_x, rec_y, rectSize, rectSize,7);
     update();
   }
-  void update() {
+  void update()
+  {
     fill(255);
     if ((mouseX >= rec_x && mouseX <= (rec_x+rectSize) && mouseY >= rec_y && mouseY <= (rec_y+rectSize)) || ( keyPressed == true && key == dir))
-    {
+
       fill(200);
-    }
-      text(name, rec_x+4, rec_y+2,rectSize-10,rectSize-10);
-      textAlign(CENTER,CENTER);
-      stroke(255);
+    textAlign(CENTER,CENTER);
+    text(name, rec_x, rec_y,rectSize,rectSize-10);
+    stroke(255);
   }  
 }
 
