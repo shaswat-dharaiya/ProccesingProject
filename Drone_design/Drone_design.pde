@@ -1,6 +1,6 @@
 int fontSize = 15;
 float mw;
-char keytyped;
+//char keytyped;
 int power = 100;
 int thrt_pow = 40;
 
@@ -88,36 +88,40 @@ void draw() {
   ptch_bkd.drawRect();
   yaw_cw.drawRect();
   yaw_ccw.drawRect();
-  
+  char keytyped;
   if(keyPressed || mousePressed)
   {
-    //keytyped = key;
-    if(key == thrst.getDir() || (mouseX >= thrst.rec_x && mouseX <= (thrst.rec_x+rectSize) && mouseY >= thrst.rec_y && mouseY <= (thrst.rec_y+rectSize) && mousePressed == true))
+    keytyped = key;
+    if(keytyped == thrst.getDir() || (mouseX >= thrst.rec_x && mouseX <= (thrst.rec_x+rectSize) && mouseY >= thrst.rec_y && mouseY <= (thrst.rec_y+rectSize) && mousePressed == true))
       rot.setThrust(thrt_pow);
-    if(key == lnd.getDir() || (mouseX >= lnd.rec_x && mouseX <= (lnd.rec_x+rectSize) && mouseY >= lnd.rec_y && mouseY <= (lnd.rec_y+rectSize) && mousePressed == true))
+    if(keytyped == lnd.getDir() || (mouseX >= lnd.rec_x && mouseX <= (lnd.rec_x+rectSize) && mouseY >= lnd.rec_y && mouseY <= (lnd.rec_y+rectSize) && mousePressed == true))
       rot.setThrust(-thrt_pow);
-    if(key == ptch_fwd.getDir() || (mouseX >= ptch_fwd.rec_x && mouseX <= (ptch_fwd.rec_x+rectSize) && mouseY >= ptch_fwd.rec_y && mouseY <= (ptch_fwd.rec_y+rectSize) && mousePressed == true))
+    if(keytyped == ptch_fwd.getDir() || (mouseX >= ptch_fwd.rec_x && mouseX <= (ptch_fwd.rec_x+rectSize) && mouseY >= ptch_fwd.rec_y && mouseY <= (ptch_fwd.rec_y+rectSize) && mousePressed == true))
       movement(rot1,rot2);
-    if(key == ptch_bkd.getDir() || (mouseX >= ptch_bkd.rec_x && mouseX <= (ptch_bkd.rec_x+rectSize) && mouseY >= ptch_bkd.rec_y && mouseY <= (ptch_bkd.rec_y+rectSize) && mousePressed == true))
+    if(keytyped == ptch_bkd.getDir() || (mouseX >= ptch_bkd.rec_x && mouseX <= (ptch_bkd.rec_x+rectSize) && mouseY >= ptch_bkd.rec_y && mouseY <= (ptch_bkd.rec_y+rectSize) && mousePressed == true))
       movement(rot3,rot4);
-    if(key == role_r.getDir() || (mouseX >= role_r.rec_x && mouseX <= (role_r.rec_x+rectSize) && mouseY >= role_r.rec_y && mouseY <= (role_r.rec_y+rectSize) && mousePressed == true))
+    if(keytyped == role_r.getDir() || (mouseX >= role_r.rec_x && mouseX <= (role_r.rec_x+rectSize) && mouseY >= role_r.rec_y && mouseY <= (role_r.rec_y+rectSize) && mousePressed == true))
       movement(rot2,rot3);
-    if(key == role_l.getDir() || (mouseX >= role_l.rec_x && mouseX <= (role_l.rec_x+rectSize) && mouseY >= role_l.rec_y && mouseY <= (role_l.rec_y+rectSize) && mousePressed == true))
+    if(keytyped == role_l.getDir() || (mouseX >= role_l.rec_x && mouseX <= (role_l.rec_x+rectSize) && mouseY >= role_l.rec_y && mouseY <= (role_l.rec_y+rectSize) && mousePressed == true))
       movement(rot1,rot4);
-    if(key == yaw_cw.getDir() || (mouseX >= yaw_cw.rec_x && mouseX <= (yaw_cw.rec_x+rectSize) && mouseY >= yaw_cw.rec_y && mouseY <= (yaw_cw.rec_y+rectSize) && mousePressed == true))
+    if(keytyped == yaw_cw.getDir() || (mouseX >= yaw_cw.rec_x && mouseX <= (yaw_cw.rec_x+rectSize) && mouseY >= yaw_cw.rec_y && mouseY <= (yaw_cw.rec_y+rectSize) && mousePressed == true))
       movement(rot1,rot3);
-    if(key == yaw_ccw.getDir() || (mouseX >= yaw_ccw.rec_x && mouseX <= (yaw_ccw.rec_x+rectSize) && mouseY >= yaw_ccw.rec_y && mouseY <= (yaw_ccw.rec_y+rectSize) && mousePressed == true))
+    if(keytyped == yaw_ccw.getDir() || (mouseX >= yaw_ccw.rec_x && mouseX <= (yaw_ccw.rec_x+rectSize) && mouseY >= yaw_ccw.rec_y && mouseY <= (yaw_ccw.rec_y+rectSize) && mousePressed == true))
       movement(rot2,rot4);
+    
   }
   else
   {
+    keytyped = '0';
     rot1.stThrust(0);
     rot2.stThrust(0);
     rot3.stThrust(0);
     rot4.stThrust(0);
   }
+ text(keytyped+":"+mouseX+":"+mouseY,1000,100);
   
   prev_val = rot.getThrust();
+  prev_val = limitR(prev_val);
   rot1.rotShape();
   rot2.rotShape();
   rot3.rotShape();
@@ -146,11 +150,12 @@ class RectDraw
     this.name = name;
     this.dir = dir;
   }
-  char getDir()
+  char getDir(){    return dir;  }
+  void posRect(int i, int j)
   {
-    return dir;
+    rec_x = (width/20)+i;
+    rec_y = (height/20)+j;
   }
-  
   void drawRect()
   {
     fill(0);
@@ -160,11 +165,6 @@ class RectDraw
     }
     rect(rec_x, rec_y, rectSize, rectSize,7);
     update();
-  }
-  void posRect(int i, int j)
-  {
-    rec_x = (width/20)+i;
-    rec_y = (height/20)+j;
   }
   void update() {
     fill(255);
@@ -182,10 +182,8 @@ class Thrust
 {
   int pos_x,pos_y;
   String rot;
-  int val,thrst,thrst_dir;
-  boolean clickp = false;
-  boolean clickm = false;
-  int inr_size =22;
+  int val,thrst,thrst_dir,inr_size =22;
+  boolean clickp = false, clickm = false;
 
   Thrust(int pos_x, int pos_y,String rot,int val)
   {
@@ -194,73 +192,79 @@ class Thrust
     this.rot = rot;
     this.val = val;
   }
-  void setThrust(int val)
+  void rotDraw(int i, int j)
   {
-    if((this.val += (val/10))>=2000)
-      this.val = 1992;
-    if((this.val += (val/10))<=1000)
-      this.val = 1000;  
-    else
-      this.val += (val/10);
+    pos_x = (14*width/20)+i;
+    pos_y = (height/20)+j;
   }
+  void setThrust(int val)  {      this.val += (val/10);  }
   void stThrust(int thrst_dir)  {    this.thrst_dir = thrst_dir;  }
   int getThrust()  {  return this.val;  }
+  
   void rotShape()
   {
+    int new_x = pos_x+rectSize+10;
+    int new_y = pos_y+rectCol+(rectSize/2);
+    textAlign(CENTER,CENTER);
     fill(0);
-    rect(pos_x, pos_y, rectSize, rectCol,3);
-    circle(pos_x+(rectSize/2),pos_y+rectCol+(rectSize/2)+10,rectSize);
-    rect(pos_x+rectSize+10,pos_y+rectCol+(rectSize/2)-10,inr_size,inr_size);    // +
-    rect(pos_x+rectSize+10,pos_y+rectCol+rectSize-25,inr_size,inr_size);    //  -
+    rect(pos_x, pos_y, rectSize, rectCol,3);  //Thrust Bar
+    circle(new_x-50,new_y+10,rectSize);  //Thrust display circle
+    rect(new_x,new_y-10,inr_size,inr_size);    // +
+    rect(new_x,new_y+15,inr_size,inr_size);    //  -
     fill(0,0,235);
     int thrst_y = pos_y+rectCol+94;
     float i;
     for(i = 100; i<(val/5)-105; i+=5)
     {
       noStroke();
-      rect(pos_x+2, thrst_y-i, rectSize-4, 1*(rectBar)-1,1);
+      rect(pos_x+2, thrst_y-i, rectSize-4, 1*(rectBar)-1,1);  //Thrust value display, bars displayed in blue
     }
     stroke(255);
-    
     fill(255);
-    textAlign(CENTER,CENTER);
-    text(rot,pos_x+(rectSize/2),pos_y-10);
-       
-    text(val,pos_x+(rectSize/2),pos_y+rectCol+rectSize-30);
-    if(mouseX >= pos_x+rectSize+10 && mouseX <= pos_x+rectSize+inr_size+10 &&mouseY >= pos_y+rectCol+(rectSize/2)-10 && mouseY <= pos_y+rectCol+(rectSize/2)-10+inr_size)
+    
+    text(rot,new_x-50,pos_y-10);   
+    text(val,new_x-50,new_y+10);
+    
+    if(mouseX >= new_x && mouseX <= new_x+inr_size &&  mouseY >= new_y-10 && mouseY <= new_y+inr_size-10)
     {
+      fill(255);
+      clickp = false;
       if(mousePressed == true)
       {
         fill(150);
-        clickp = true;
-      }
-      else
-      {
-        fill(255);
-        clickp = false;
+        clickp = true;       
       }
    }
-   text("+",pos_x+100,pos_y+rectCol+rectSize-40);
+   text("+",new_x+11,new_y-1);
    fill(255);
-   if(mouseX >= pos_x+rectSize+10 && mouseX <= pos_x+rectSize+inr_size+10 && mouseY >= pos_y+rectCol+rectSize-25 && mouseY <= pos_y+rectCol+rectSize-25+inr_size)
+   if(mouseX >= new_x && mouseX <= new_x+inr_size && mouseY >= new_y+10 && mouseY <= new_y+inr_size+20)
     {
+      clickm = false;
       if(mousePressed == true)
       {
         fill(150);
         clickm = true;
       }
-      else
-      {
-        fill(255);
-        clickm = false;
-      }
     }
-    text("-",pos_x+100,pos_y+rectCol+rectSize-15);
+    text("-",new_x+11,new_y+24);
     
-    int radX = abs(mouseX - pos_x- (rectSize/2));
-    int radY = abs(mouseY - pos_y-rectCol-(rectSize/2));
-    if((radX <= rectSize/2 && radY <= rectSize/2 && mouseX >= pos_x && mouseX <= pos_x+rectSize &&mouseY >= pos_y+rectCol+10 && mouseY <= pos_y+rectCol+10+rectSize) || (mouseX >= pos_x && mouseX <= pos_x+rectSize &&mouseY >= pos_y && mouseY <= pos_y+rectCol) || (clickp)|| (clickm))
-     {
+    /*int new_x = pos_x+rectSize+10;
+    int new_y = pos_y+rectCol+(rectSize/2);*/
+    
+    
+    int radX = abs(mouseX - new_x-50);
+    int radY = abs(mouseY - new_y);
+    if((radX <= rectSize/2 && radY <= rectSize/2 && mouseX >= pos_x && mouseX <= pos_x+rectSize &&mouseY >= pos_y+rectCol+10 && mouseY <= pos_y+rectCol+10+rectSize) || (mouseX >= pos_x && mouseX <= pos_x+rectSize &&mouseY >= pos_y-10 && mouseY <= pos_y+rectCol-10) || (clickp)|| (clickm) || keyPressed)
+    {
+      if(keyPressed)
+      {
+        if(val>=1000 && val <= 2000)
+         val = prev_val+thrst+thrst_dir;
+       if(val>=2000)
+         val = 2000;
+       else if(val<=1000)
+         val = 1000;
+      }
       if (clickp)
       {
          mw = -1.0;
@@ -278,33 +282,20 @@ class Thrust
         val = 1000;
       }
       else
+      {
         thrst = int(mw*-10); // reverse wheel action
+      }  
       mw = 0;
       val += thrst;
-      //thrst_dir = val - thrst;
       thrst = val - prev_val - thrst_dir;
-      
-     }
-     else
-     {
-       if(val>=1000 && val <= 2000)
-         val = prev_val+thrst+thrst_dir;
-       if(val>=2000)// || prev_val>2000)
-       {
-         val = 2000;
-       }
-       else if(val<=1000)// || prev_val<1000)
-       {
-         val = 1000;
-       }       
      }
      text(val+":"+prev_val+":"+thrst+":"+thrst_dir,pos_x+20,pos_y+10);
   }
-  void rotDraw(int i, int j)
+  void update()
   {
-    pos_x = (14*width/20)+i;
-    pos_y = (height/20)+j;
+    
   }
+  
 }
 class Battery
 {
@@ -352,28 +343,11 @@ void mouseWheel(MouseEvent event)
   mw = event.getCount();
 }
 
-  //}
-      /* else
-       {
-         if(val >= 1000 && val<= 2000 && prev_val >= 1000 &&prev_val<= 2000)
-         {
-           //if(prev_val!=1000 && prev_val != 2000)
-             val = prev_val+thrst;
-           //else
-             //val = prev_val; 
-         }
-         if(prev_val >= 2000 && val >= 2000)
-         {
-          thrst = 0;
-           val = 2000;
-         }
-         if(prev_val >= 2000 && val >= 2000)
-         {
-           
-         }
-         if(prev_val <= 1000 && val <= 1000)
-         {
-           thrst = val-prev_val;
-           val = 1000;
-         }
-       }*/
+int limitR(int val)
+{
+  if(val>=2000)
+    val = 2000;
+  if(prev_val<=1000)
+    val = 1000;
+  return val;
+}
