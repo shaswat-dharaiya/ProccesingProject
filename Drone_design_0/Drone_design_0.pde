@@ -1,9 +1,17 @@
+/*
+16/05/2019
+Basic design Created, which will perform basic functionalities for the drone RC.
+It cannot be plugged to the RC of drone.
+This file might receive just on update in future.Update will consist:
+1)Remove all extra unsused or unnecessary code
+Next Update will be in Drone_design, which will be plugable to the actual RC.
+*/
 /////////////////////////////////////////////////////////////Global Variables/////////////////////////////////////////////////
-
-int fontSize = 16;
+float mw;
+int fontSize = 15;
 int rectSize = 80;     // Diameter of rect
 int power = 100;
-int thrt_pow = 50;
+int thrt_pow = 75;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -52,6 +60,21 @@ Thrust rot1 = new Thrust(rot1_x, rot1_y, "Rotor 1", thrt_val_1);    //  ccw roto
 Thrust rot2 = new Thrust(rot2_x, rot2_y, "Rotor 2", thrt_val_2);    //  cw rotors
 Thrust rot3 = new Thrust(rot3_x, rot3_y, "Rotor 3", thrt_val_3);    //  cw rotors
 Thrust rot4 = new Thrust(rot4_x, rot4_y, "Rotor 4", thrt_val_4);    //  ccw rotors
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////Variables for Battery Class///////////////////////////////////////////////////
+
+float vlt1=11.1,vlt2=7.5;
+int bat1_pos_x, bat1_pos_y,bat2_pos_x,bat2_pos_y;
+int batLen = 100,batWid = 25; 
+
+/////////////////////////////////////////////////Constructor for Battery Class////////////////////////////////////////////////
+
+Battery bt1 = new Battery(vlt1,bat1_pos_x,bat1_pos_y,"Main",11.1);
+Battery bt2 = new Battery(vlt2,bat2_pos_x,bat2_pos_y,"2nd",9);
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -59,7 +82,7 @@ Thrust rot4 = new Thrust(rot4_x, rot4_y, "Rotor 4", thrt_val_4);    //  ccw roto
 ////////////////////////////////////////This is the Setup Method()////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void setup() {
-  size(1300, 800);
+  size(1600, 1000);
   smooth();
   thrst.posRect(rectSize+10, 0);
   lnd.posRect(rectSize+10, 2*(rectSize+10));
@@ -74,8 +97,11 @@ void setup() {
   rot0.posRect(((i+4)*width/20), rectCol);
   rot1.posRect((i*width/20), 0);
   rot2.posRect(((i+2)*width/20), 0);
-  rot3.posRect((i*width/20), 2*rectCol);
-  rot4.posRect(((i+2)*width/20), 2*rectCol);
+  rot4.posRect((i*width/20), 2*rectCol);
+  rot3.posRect(((i+2)*width/20), 2*rectCol);
+  
+  bt1.posRect((17*width/20)+batWid,(-batWid/2));
+  bt2.posRect((17*width/20)+batWid,int(1.5*batWid));
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////This is the Draw Method()/////////////////////////////////////////////////////////////
@@ -83,72 +109,68 @@ void setup() {
 void draw() {
   background(102); 
   textSize(fontSize);
-  thrst.drawShape(rectSize, rectSize, thrst.name);
+  thrst.drawShape(rectSize, rectSize);
   //hld.drawShape(rectSize);
-  lnd.drawShape(rectSize, rectSize, lnd.name);
-  role_l.drawShape(rectSize, rectSize, role_l.name);
-  role_r.drawShape(rectSize, rectSize, role_r.name);
-  ptch_fwd.drawShape(rectSize, rectSize, ptch_fwd.name);
-  ptch_bkd.drawShape(rectSize, rectSize, ptch_bkd.name);
-  yaw_cw.drawShape(rectSize, rectSize, yaw_cw.name);
-  yaw_ccw.drawShape(rectSize, rectSize, yaw_ccw.name);
+  lnd.drawShape(rectSize, rectSize);
+  role_l.drawShape(rectSize, rectSize);
+  role_r.drawShape(rectSize, rectSize);
+  ptch_fwd.drawShape(rectSize, rectSize);
+  ptch_bkd.drawShape(rectSize, rectSize);
+  yaw_cw.drawShape(rectSize, rectSize);
+  yaw_ccw.drawShape(rectSize, rectSize);
 
   rot0.drawShape(rectSize, rectCol, rot0.thrst,rot0.name);
   rot1.drawShape(rectSize, rectCol, rot1.thrst,rot1.name);
   rot2.drawShape(rectSize, rectCol, rot2.thrst,rot2.name);
   rot3.drawShape(rectSize, rectCol, rot3.thrst,rot3.name);
   rot4.drawShape(rectSize, rectCol, rot4.thrst,rot4.name);
-  char keytyped;
-  if(keyPressed)
+
+  bt1.drawBat(batLen,batWid,bt1.name);
+  bt2.drawBat(batLen,batWid,bt2.name);
+ 
+  if(keyPressed || mousePressed)
   {
-    keytyped = key;
-    if(keytyped == thrst.getDir() )
+    if(thrst.btnClicked())
     {
       rot0.setThrust(thrt_pow);
-      rot1.setThrust(thrt_pow);
-      rot2.setThrust(thrt_pow);
-      rot3.setThrust(thrt_pow);
-      rot4.setThrust(thrt_pow);
+      movement(rot1,rot2,rot3,rot4,rot0.getThrust());
     }
-    if(keytyped == lnd.getDir())
+    if(lnd.btnClicked())
     {
       rot0.setThrust(-thrt_pow);
-      rot1.setThrust(-thrt_pow);
-      rot2.setThrust(-thrt_pow);
-      rot3.setThrust(-thrt_pow);
-      rot4.setThrust(-thrt_pow);
+      movement(rot1,rot2,rot3,rot4,rot0.getThrust());
     }
-    if(keytyped == ptch_fwd.getDir())
+    if(ptch_fwd.btnClicked())
       movement(rot1,rot2);
-    if(keytyped == ptch_bkd.getDir())
+    if(ptch_bkd.btnClicked())
       movement(rot3,rot4);
-    if(keytyped == role_r.getDir())
+    if(role_r.btnClicked())
       movement(rot2,rot3);
-    if(keytyped == role_l.getDir())
+    if(role_l.btnClicked())
       movement(rot1,rot4);
-    if(keytyped == yaw_cw.getDir())
+    if(yaw_cw.btnClicked())
       movement(rot1,rot3);
-    if(keytyped == yaw_ccw.getDir())
-      movement(rot2,rot4);
-      
-
-      
-     
-
-      
+    if(yaw_ccw.btnClicked())
+      movement(rot2,rot4);      
   }    
   else
-  {
-    rot1.stThrust(0);
-    rot2.stThrust(0);
-    rot3.stThrust(0);
-    rot4.stThrust(0);
-  }
+    movement(rot1,rot2,rot3,rot4,rot0.getThrust());  
 }
+void mouseWheel(MouseEvent event){  mw = event.getCount();  }
+
 void movement(Thrust t1, Thrust t2)
 {
-  t1.stThrust(-power);
-  t2.stThrust(-power);
+  int flank = rot0.getThrust()-power;
+  t1.stThrst(flank);
+  t2.stThrst(flank);
+  //text(flank,100,100);
+}
+void movement(Thrust t1, Thrust t2,Thrust t3,Thrust t4,int th)
+{
+  t1.stThrst(th);
+  t2.stThrst(th);
+  t3.stThrst(th);
+  t4.stThrst(th);
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////This is the Base Shape Class/////////////////////////////////////////////////////
@@ -162,7 +184,7 @@ class Shape
     pos_x = (width/20)+i;
     pos_y = (height/20)+j;
   }
-  void drawRect(int len, int br, int curve, int val, String name)
+  void drawRect(int len, int br, int curve, int thrst_val, String name)
   {
     fill(0);
     stroke(255);
@@ -170,35 +192,36 @@ class Shape
     textAlign(CENTER, CENTER);
     fill(255);
     text(name, pos_x+(rectSize/2), pos_y-fontSize);
-    text(val, pos_x+(rectSize/2), pos_y+rectCol+(rectSize/1.5));
-    text(mouseX+":"+mouseY, 500, 500);
+    text(thrst_val, pos_x+(rectSize/2), pos_y+rectCol+(rectSize/1.5));
   }
-  void drawRect(int len, int br, String name)
+  void drawRect(int len, int br)
   {
     stroke(255);
     rect(pos_x, pos_y, len, br, 7);
-    textAlign(CENTER, CENTER);
-    fill(255);
-    text(name, pos_x, pos_y-(rectSize/16), rectSize, rectSize);
   }
-  void btnClick(int x_cord, int y_cord, int range,Thrust t,int inr)
+  void btnClick(int x_cord, int y_cord, int x_range,int y_range,Thrust t,int inr)
   {
     fill(0);
-    if (mouseX >= x_cord && mouseX <= x_cord+range && mouseY >= y_cord && mouseY <= y_cord+range)
+    if (mouseX >= x_cord && mouseX <= x_cord+x_range && mouseY >= y_cord && mouseY <= y_cord+y_range)
       fill(50);
-    if ((mouseX >= x_cord && mouseX <= x_cord+range && mouseY >= y_cord && mouseY <= y_cord+range && mousePressed == true))
+    if ((mouseX >= x_cord && mouseX <= x_cord+x_range && mouseY >= y_cord && mouseY <= y_cord+y_range && mousePressed == true))
     {
       fill(100);
       t.setThrust(inr);
     }
   }
-  void btnClick(int x_cord, int y_cord, int range,char dir)
+  boolean btnClick(int x_cord, int y_cord, int range,char dir)
   {
+    boolean clicked = false;
     fill(0);
     if (mouseX >= x_cord && mouseX <= x_cord+range && mouseY >= y_cord && mouseY <= y_cord+range)
       fill(50);
     if ((mouseX >= x_cord && mouseX <= x_cord+range && mouseY >= y_cord && mouseY <= y_cord+range && mousePressed == true) || ( keyPressed == true && key == dir))
+    {
+      clicked = true;
       fill(100);
+    }
+    return clicked;
   }
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -210,6 +233,7 @@ class ControlButtons extends Shape
   String name;
   char dir;
   int i, j, len, br;
+  boolean clicked;
   ControlButtons(int pos_x, int pos_y, String name, char dir)  /////////Only Constructor of the ControlButton Class///////////
   {
     this.pos_x = pos_x;
@@ -217,11 +241,22 @@ class ControlButtons extends Shape
     this.name = name;
     this.dir = dir;
   }
-  char getDir(){return dir;}                            //////////////Returns the char assigned to the Button/////////////////
-  void drawShape(int len, int br, String name)          //////////////Draws the Button from the Base Class Shape//////////////
+  char getDir(){return dir;}                                  ////////Returns the char assigned to the Button/////////////////
+  
+  void drawShape(int len, int br)                //////////Draws the Button from the Base Class Shape////////////
   {   
-    super.btnClick(super.pos_x,super.pos_y,rectSize,dir); ///Calls the btnClick() method of base class///boolean btnClicked = 
-    super.drawRect(len, br, name);                           ///////////Calls the btnClick() method of base class/////////////
+    clicked = super.btnClick(super.pos_x,super.pos_y,rectSize,dir);     //////////Calls the btnClick() method of base class///////////// 
+    super.drawRect(len, br);                            //////////Calls the drawRect() method of base class/////////////
+    textAlign(CENTER, CENTER);
+    fill(255);
+    text(name, super.pos_x, super.pos_y-(rectSize/16), rectSize, rectSize);
+  }
+  boolean btnClicked()
+  {
+    if(clicked)
+      return true;
+    else
+      return false;
   }
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -231,7 +266,7 @@ class Thrust extends Shape
 {
   int pos_x, pos_y;
   String name;
-  int thrst, thrst_dir;
+  int thrst, thrst_dir, thrst1;
   boolean clickp = false, clickm = false;
 
   Thrust(int pos_x, int pos_y, String name, int thrst)
@@ -250,17 +285,15 @@ class Thrust extends Shape
       this.thrst = 2000;
     if(this.thrst<=1000)
       this.thrst = 1000;
-    
   }
-  void stThrust(int thrst_dir)  {    this.thrst_dir = thrst_dir;  }
   void stThrst(int thrst)  
   {
-    if(this.thrst>2000)
+    if(this.thrst>=1000 && this.thrst<=2000)
+      this.thrst = thrst + thrst_dir;
+    if(this.thrst>=2000)
       this.thrst = 2000;
-    if(this.thrst<1000)
+    if(this.thrst<=1000)
       this.thrst = 1000;
-    else
-      this.thrst = thrst;  
   }
   void drawShape(int len, int br, int thrst,String name)
   {  
@@ -276,25 +309,68 @@ class Thrust extends Shape
     fill(0,0,255);
     noStroke();
     float i;
-    for(i=100; i<(thrst/5)-106;i+=5)
-    {
+    for(i=100; i<(thrst/5)-105;i+=5)
       rect(super.pos_x+2,super.pos_y+(1.5*rectCol)-i-7,.96*rectSize,(rectCol/20)-5.75,1);
-    }
-    text(i,super.pos_x-2,super.pos_y+(1.5*rectCol));
     stroke(255);
   }
   void dispThrustControl()
   {
+    thrst1 = thrst;
     int inr_size = rectSize/3;
     int inr_x = super.pos_x+(rectSize)+inr_size/2;
     int inr_y = super.pos_y+rectCol+(rectSize/4);
-    super.btnClick(inr_x,inr_y,inr_size,this,50);          
+    super.btnClick(inr_x,inr_y,inr_size,inr_size,this,thrt_pow);
     rect(inr_x,inr_y , inr_size,inr_size);  //Thrust display circle
     fill(255);
     text("+",inr_x+(inr_size/2),inr_y+(inr_size/2.5));  //Thrust display circle
-    super.btnClick(inr_x,int(inr_y+(1.25*inr_size)),inr_size,this,-50);
+    super.btnClick(inr_x,int(inr_y+(1.25*inr_size)),inr_size,inr_size,this,-thrt_pow);
     rect(inr_x, inr_y+1.25*inr_size, inr_size,inr_size);  //Thrust display circle
     fill(255);
     text("-",inr_x+(inr_size/2),inr_y+1.6*inr_size);  //Thrust display circle
+    thrst_dir = thrst_dir +thrst - thrst1;
+    text(thrst_dir,super.pos_x-2,super.pos_y+(1.5*rectCol));
+  }
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////This is the Battery Class///////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class Battery extends Shape
+{
+  float volt,max;
+  int pos_x, pos_y;
+  String name;
+  Battery(float volt,int pos_x,int pos_y,String name,float max)
+  {
+    this.volt = volt;
+    this.pos_x = pos_x;
+    this.pos_y = pos_y;
+    this.name = name;
+    this.max = max;
+  }
+  void drawBat(int len, int br, String name)                //////////Draws the Button from the Base Class Shape////////////
+  {    
+    fill(0);
+    super.drawRect(len, br);                            //////////Calls the drawRect() method of base class/////////////
+    fill(255);
+    textAlign(LEFT,CENTER);
+    text(name, super.pos_x-1.75*batWid, super.pos_y,batWid*2,batWid);
+    dispVolt();
+  }
+  void dispVolt()
+  {
+    fill(0);
+    rect(super.pos_x, super.pos_y, batLen+1, batWid,3);
+    fill(0,175,0);
+    float j = 0.5;
+    float per = (volt/max)*100;
+    noStroke();
+    for(float i = 0; i<per; i+=0.8)
+      rect(super.pos_x+i+1, super.pos_y+1, 1, batWid-2,3);
+    stroke(255);
+    fill(255);
+    textAlign(LEFT,BOTTOM);
+    text("Volts="+volt+"v",super.pos_x,super.pos_y);
+    textAlign(CENTER,CENTER);
+    text(nf(per,0,1)+"%",super.pos_x,super.pos_y,batLen,batWid);
   }
 }
