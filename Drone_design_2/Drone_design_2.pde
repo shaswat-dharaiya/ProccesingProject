@@ -1,55 +1,53 @@
 /*
 18/05/2019
-Designing Finished.
-Added the incomming & outgoing string functionality.
+System still in design & development.
 The incomming string will carry the MPU data,Battery Voltage, and Rotors thrust.
-All Bugs removed.
-Code is pluggable.
+Rotor data and Battery voltage is derived from incomming string and implemented in design, mpu data is yet to be implemented.
+No bugs yet
+Code is pluggable
 Next Update:
--
+1)Implement Mpu data in design.
+2)Adjust the thrust according to MPU data.
+3)Make Code plugable.
 
-18/05/2019
-Task for the day:
-1)Render the incomming and going strings
-2)Designing for MPU values
-3)Remove unnecessary variables.
-
-Work Completed
-1)Incomming String rendered completely.
-2)Outgoing String rendered completely.
-3)Removed unused & unnecesseray variables.
-
-Design is now pluggable with drone RC now!
-
-Next Update will be in Drone_design_2
-Features:
-Will have MPU design.
+The actual pluggable design of RC will be in Drone_design_pluggable.
 */
 
 /////////////////////////////////////////////////////////////Global Variables/////////////////////////////////////////////////
-float mw;
+float mw,valF;
 int fontSize = 15;
+int rectSize = 80;     // Diameter of rect
 int power = 100;
 int thrt_pow = 50;
+String incommingString = "1.23:4.56:7.89:0.12:3.45:6.78:V11.1:7.8:T1500:2000:1400:1200:;";
+String outgoingString;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////Variables for ControlButtons Class////////////////////////////////////////////
 
-int rectSize = 80;     // Diameter of rect
+int rectX_thrst, rectY_thrst;      // Position of square button
+int rectX_hld, rectY_hld;      // Position of square button
+int rectX_lnd, rectY_lnd;      // Position of square button
+int rectX_role_r, rectY_role_r;      // Position of square button
+int rectX_role_l, rectY_role_l;      // Position of square button
+int rectX_ptch_fwd, rectY_ptch_fwd;      // Position of square button
+int rectX_ptch_bkd, rectY_ptch_bkd;      // Position of square button
+int rectX_yaw_cw, rectY_yaw_cw;      // Position of square button
+int rectX_yaw_ccw, rectY_yaw_ccw;      // Position of square button
 
 //////////////////////////////////////////////////Constructor for ControlButtons Class////////////////////////////////////////
 
-ControlButtons thrst = new ControlButtons("Lift", 'w');
-ControlButtons lnd = new ControlButtons("Drop", 's');
-ControlButtons role_l = new ControlButtons("Role Left", '4');
-ControlButtons role_r = new ControlButtons("Role Right", '6');
-ControlButtons ptch_fwd = new ControlButtons("Forward", '8');
-ControlButtons ptch_bkd = new ControlButtons("Backward", '5');
-ControlButtons yaw_cw = new ControlButtons("Yaw +", 'a');
-ControlButtons yaw_ccw = new ControlButtons("Yaw -", 'd');
-//ControlButtons hld = new ControlButtons("Hold",' ');
+ControlButtons thrst = new ControlButtons(rectX_thrst, rectY_thrst, "Lift", 'w');
+ControlButtons lnd = new ControlButtons(rectX_lnd, rectY_lnd, "Drop", 's');
+ControlButtons role_l = new ControlButtons(rectX_role_r, rectY_role_r, "Role Left", '4');
+ControlButtons role_r = new ControlButtons(rectX_role_l, rectY_role_l, "Role Right", '6');
+ControlButtons ptch_fwd = new ControlButtons(rectX_ptch_fwd, rectY_ptch_fwd, "Forward", '8');
+ControlButtons ptch_bkd = new ControlButtons(rectX_ptch_bkd, rectY_ptch_bkd, "Backward", '5');
+ControlButtons yaw_cw = new ControlButtons(rectX_yaw_cw, rectY_yaw_cw, "Yaw +", 'a');
+ControlButtons yaw_ccw = new ControlButtons(rectX_yaw_ccw, rectY_yaw_ccw, "Yaw -", 'd');
+//ControlButtons hld = new ControlButtons((rectX_hld, rectY_hld, "Hold",' ');
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -57,27 +55,45 @@ ControlButtons yaw_ccw = new ControlButtons("Yaw -", 'd');
 ////////////////////////////////////////////////Variables for Thrust Class////////////////////////////////////////////////////
 
 int rectCol = 200;
-int thrt_val_1=1000, thrt_val_2=1000, thrt_val_3=1000, thrt_val_4=1000, thrt_val=1000;
+int rot1_x, rot1_y;
+int rot2_x, rot2_y;
+int rot3_x, rot3_y;
+int rot4_x, rot4_y;
+int rot_x, rot_y;
+int thrt_val_1=1000, thrt_val_2=1000, thrt_val_3=1000, thrt_val_4=1000, thrt_val=1000, prev_val;
 
 /////////////////////////////////////////////////Constructor for Thrust Class/////////////////////////////////////////////////
 
-Thrust rot0 = new Thrust("Thrust", thrt_val,0);
-Thrust rot1 = new Thrust("Rotor 1", thrt_val_1,0);    //  ccw rotors
-Thrust rot2 = new Thrust("Rotor 2", thrt_val_2,1);    //  cw rotors
-Thrust rot3 = new Thrust("Rotor 3", thrt_val_3,2);    //  cw rotors
-Thrust rot4 = new Thrust("Rotor 4", thrt_val_4,3);    //  ccw rotors
+Thrust rot0 = new Thrust(rot_x, rot_y, "Thrust", thrt_val,0);
+Thrust rot1 = new Thrust(rot1_x, rot1_y, "Rotor 1", thrt_val_1,0);    //  ccw rotors
+Thrust rot2 = new Thrust(rot2_x, rot2_y, "Rotor 2", thrt_val_2,1);    //  cw rotors
+Thrust rot3 = new Thrust(rot3_x, rot3_y, "Rotor 3", thrt_val_3,2);    //  cw rotors
+Thrust rot4 = new Thrust(rot4_x, rot4_y, "Rotor 4", thrt_val_4,3);    //  ccw rotors
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////Variables for Battery Class///////////////////////////////////////////////////
 
+float vlt1,vlt2;
+int bat1_pos_x, bat1_pos_y,bat2_pos_x,bat2_pos_y;
 int batLen = 100,batWid = 25; 
 
 /////////////////////////////////////////////////Constructor for Battery Class////////////////////////////////////////////////
 
-Battery bt1 = new Battery("Main",11.1,0);
-Battery bt2 = new Battery("2nd",9,1);
+Battery bt1 = new Battery(vlt1,bat1_pos_x,bat1_pos_y,"Main",11.1,0);
+Battery bt2 = new Battery(vlt2,bat2_pos_x,bat2_pos_y,"2nd",9,1);
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////Variables for MPU Class////////////////////////////////////////////////////
+
+int mpuBox = 500;
+
+///////////////////////////////////////////////////Constructor for MPU Class//////////////////////////////////////////////////
+
+MPU mpu = new MPU();//incommingString);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -107,6 +123,8 @@ void setup() {
   bt1.posRect((17*width/20)+batWid,(-batWid/2));
   bt2.posRect((17*width/20)+batWid,int(1.5*batWid));
   
+  mpu.posRect(2*height/20,7*height/20);
+  
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////This is the Draw Method()/////////////////////////////////////////////////////////////
@@ -114,10 +132,6 @@ void setup() {
 void draw() {
   background(102); 
   textSize(fontSize);
-  
-  String incommingString = "1.23:4.56:7.89:0.12:3.45:6.78:V11.1:7.8:T1500:2000:1400:1200:;";  // Just replace this string with the actual incomming string
-  String outgoingString;
-  
   thrst.drawShape(rectSize, rectSize);
   //hld.drawShape(rectSize);
   lnd.drawShape(rectSize, rectSize);
@@ -144,7 +158,12 @@ void draw() {
   bt2.setReadString(incommingString);
   bt1.drawBat(batLen,batWid,bt1.name);
   bt2.drawBat(batLen,batWid,bt2.name);
-    
+  
+  fill(0);
+  mpu.drawRect(mpuBox,mpuBox);
+  mpu.setReadString(incommingString);
+  mpu.dispReadString();
+  
   if(keyPressed || mousePressed)
   {
     if(thrst.btnClicked())
@@ -208,16 +227,14 @@ class Shape
     pos_x = (width/20)+i;
     pos_y = (height/20)+j;
   }
-  float drawRect(int len, int br, int curve, int thrst_val, String name)
+  void drawRect(int len, int br, int curve, int thrst_val, String name)
   {
     stroke(0);
     rect(pos_x, pos_y, len, br, curve);
     textAlign(CENTER, CENTER);
     fill(255);
     text(name, pos_x+(rectSize/2), pos_y-fontSize);
-    float per = ((thrst_val-1000)/10);
-    text(thrst_val, pos_x+(rectSize/2),(pos_y+rectCol+(rectSize/1.5)));
-    return per;
+    text(thrst_val, pos_x+(rectSize/2), pos_y+rectCol+(rectSize/1.5));
   }
   void drawRect(int len, int br)
   {
@@ -259,8 +276,10 @@ class ControlButtons extends Shape
   char dir;
   int i, j, len, br;
   boolean clicked;
-  ControlButtons(String name, char dir)  /////////Only Constructor of the ControlButton Class///////////
+  ControlButtons(int pos_x, int pos_y, String name, char dir)  /////////Only Constructor of the ControlButton Class///////////
   {
+    this.pos_x = pos_x;
+    this.pos_y = pos_y;
     this.name = name;
     this.dir = dir;
   }
@@ -297,14 +316,17 @@ class ControlButtons extends Shape
 */
 class Thrust extends Shape
 {
+  int pos_x, pos_y;
   String name, readBuffer;
   int thrst_dir, thrst1, rotIndex, prev_index;   
   int in_thrstValue;                 //////////in_thrstValue is the thrust value which is  received from the drone////////////
   int out_thrstValue;                //////////out_thrstValue is the thrust value which is to be sent to the drone////////////
   boolean clickp = false, clickm = false;
   
-  Thrust(String name, int out_thrstValue,int rotIndex)
+  Thrust(int pos_x, int pos_y, String name, int out_thrstValue,int rotIndex)
   {
+    this.pos_x = pos_x;
+    this.pos_y = pos_y;
     this.name = name;
     this.out_thrstValue = out_thrstValue;
     this.rotIndex = rotIndex;
@@ -334,10 +356,9 @@ class Thrust extends Shape
   {  
     fill(0);
     circle(super.pos_x+(rectSize/2), super.pos_y+rectCol+(rectSize/1.5), rectSize);  //Thrust display circle
-    float per = super.drawRect(len, br, 7, in_thrstValue,name);
+    super.drawRect(len, br, 7, in_thrstValue, name);
     dispThrust(in_thrstValue);
     dispThrustControl();
-    text(nf(per,0,0)+"%", super.pos_x, super.pos_y,rectSize,rectCol);
   }
   void dispThrust(int in_thrstValue)
   {
@@ -367,6 +388,7 @@ class Thrust extends Shape
     fill(255);
     text("-",inr_x,inr_y+1.25*inr_size,inr_size,inr_size-5);  //Thrust display circle
     thrst_dir += out_thrstValue - thrst1;
+    text(out_thrstValue,super.pos_x-2,super.pos_y+(1.5*rectCol));
   }
   int[] renderReadBuffer(String readBufferString)
   {
@@ -394,8 +416,11 @@ class Battery extends Shape
   float volt,max;
   int pos_x, pos_y,batIndex,prev_index;
   String name,readBuffer;
-  Battery(String name,float max,int batIndex)
+  Battery(float volt,int pos_x,int pos_y,String name,float max,int batIndex)
   {
+    this.volt = volt;
+    this.pos_x = pos_x;
+    this.pos_y = pos_y;
     this.name = name;
     this.max = max;
     this.batIndex = batIndex;
@@ -442,5 +467,83 @@ class Battery extends Shape
       batValues[i] = float(readString);
     }
     return batValues;
+  }
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////This is the MPU Class///////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class MPU extends Shape
+{
+  int pos_x,pos_y;
+  float X,Y,Z; 
+  String readBuffer;
+  MPU(){}
+  void mpuSetX(float X){this.X = X;}
+  void mpuSetY(float Y){this.Y = Y;}
+  void mpuSetZ(float Z){this.Z = Z;}
+  
+  float mpuGetX(){return X;}
+  float mpuGetY(){return Y;}
+  float mpuGetZ(){return Z;}
+  
+  String getReadString(){return readBuffer;}
+  void setReadString(String readBuffer){this.readBuffer = readBuffer;}
+  void dispReadString()
+  {
+    fill(255);
+    textAlign(CENTER,CENTER);
+    //text(readBuffer,super.pos_x,super.pos_y,mpuBox,mpuBox);
+    float[] mpuVal = renderReadBuffer(readBuffer);
+    for(int i =1; i<mpuVal.length+1;i++)
+      text(str(mpuVal[i-1]),super.pos_x,super.pos_y+(i*30)-(mpuBox/4),mpuBox,mpuBox);
+  }
+  float[] renderReadBuffer(String readBufferString)
+  {
+    String readString;
+    float[] mpuValues = new float[6];
+    int index = -1,prev_index;
+    for(int i = 0;i<mpuValues.length;i++)
+    {
+      prev_index = index+1;
+      index = readBufferString.indexOf(':',index+1);
+      readString = readBufferString.substring(prev_index,index);
+      mpuValues[i] = float(readString);
+    }
+    return mpuValues;
+  }
+  float[] setGyro(float[] mpu)
+  {
+    float[] gyroValues = new float[3];
+    for(int i=0;i<mpu.length;i++)
+      if(i<3) gyroValues[i] = mpu[i];
+    return gyroValues;
+  }
+  float[] setAccel(float[] mpu)
+  {
+    float[] accelValues = new float[3];
+    for(int i=0;i<mpu.length;i++)
+      if(i>2) accelValues[i+3] = mpu[i];
+    return accelValues;
+  } 
+}
+class Gyroscope extends MPU
+{
+  float rX, rY, rZ;
+  Gyroscope(float rX,float rY,float rZ)
+  {
+    this.rX = rX;
+    this.rY = rY;
+    this.rZ = rZ;
+  }
+  
+}
+class Accelerometer extends MPU
+{
+  float gFX, gFY, gFZ;
+  Accelerometer(float gFX,float gFY,float gFZ)
+  {
+    this.gFX = gFX;
+    this.gFY = gFY;
+    this.gFZ = gFZ;
   }
 }
