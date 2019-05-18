@@ -327,7 +327,7 @@ class Thrust extends Shape
     rect(inr_x, inr_y+1.25*inr_size, inr_size,inr_size);  //Thrust display circle
     fill(255);
     text("-",inr_x+(inr_size/2),inr_y+1.6*inr_size);  //Thrust display circle
-    thrst_dir = thrst_dir +thrst - thrst1;
+    thrst_dir += thrst - thrst1;
     text(thrst_dir,super.pos_x-2,super.pos_y+(1.5*rectCol));
   }
 }

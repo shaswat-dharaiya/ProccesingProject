@@ -12,6 +12,9 @@ Next Update:
 3)Outgoing string will have 4 rotor thrust value instead of just one(i.e. each rotor's thrust will be sent independtly)
 4)Remove all extra unused or unnecessary code.
 The actual pluggable design of RC will be in Drone_design_pluggable.
+
+18/05/2019
+
 */
 
 /////////////////////////////////////////////////////////////Global Variables/////////////////////////////////////////////////
@@ -20,7 +23,7 @@ int fontSize = 15;
 int rectSize = 80;     // Diameter of rect
 int power = 100;
 int thrt_pow = 75;
-String droneRead = "1.23:4.56:7.89:0.12:3.45:6.78:V11.1:7.8:T1500:2000:1400:1200;";
+String droneRead = "1.23:4.56:7.89:0.12:3.45:6.78:V11.1:7.8:T1500:2000:1400:1200:;";
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -64,7 +67,7 @@ int thrt_val_1=1000, thrt_val_2=1000, thrt_val_3=1000, thrt_val_4=1000, thrt_val
 
 /////////////////////////////////////////////////Constructor for Thrust Class/////////////////////////////////////////////////
 
-Thrust rot0 = new Thrust(rot_x, rot_y, "Thrust", thrt_val);
+Thrust rot0 = new Thrust(rot_x, rot_y, "Thrust", thrt_val,0);
 Thrust rot1 = new Thrust(rot1_x, rot1_y, "Rotor 1", thrt_val_1,0);    //  ccw rotors
 Thrust rot2 = new Thrust(rot2_x, rot2_y, "Rotor 2", thrt_val_2,1);    //  cw rotors
 Thrust rot3 = new Thrust(rot3_x, rot3_y, "Rotor 3", thrt_val_3,2);    //  cw rotors
@@ -142,6 +145,7 @@ void draw() {
   yaw_cw.drawShape(rectSize, rectSize);
   yaw_ccw.drawShape(rectSize, rectSize);
 
+  rot0.setReadString("T"+rot0.getThrust()+":");
   rot1.setReadString(droneRead);
   rot2.setReadString(droneRead);
   rot3.setReadString(droneRead);
@@ -198,7 +202,6 @@ void movement(Thrust t1, Thrust t2)
   int flank = rot0.getThrust()-power;
   t1.stThrst(flank);
   t2.stThrst(flank);
-  //text(flank,100,100);
 }
 void movement(Thrust t1, Thrust t2,Thrust t3,Thrust t4,int th)
 {
@@ -316,25 +319,17 @@ class Thrust extends Shape
   int out_thrstValue;                //////////out_thrstValue is the thrust value which is to be sent to the drone////////////
   boolean clickp = false, clickm = false;
   
-  Thrust(int pos_x, int pos_y, String name, int out_thrstValue)
+  Thrust(int pos_x, int pos_y, String name, int out_thrstValue,int rotIndex)
   {
     this.pos_x = pos_x;
     this.pos_y = pos_y;
     this.name = name;
     this.out_thrstValue = out_thrstValue;
-    rotIndex = 5;
-  }
-  Thrust(int pos_x, int pos_y, String name, int in_thrstValue,int rotIndex)
-  {
-    this.pos_x = pos_x;
-    this.pos_y = pos_y;
-    this.name = name;
-    this.in_thrstValue = in_thrstValue;
     this.rotIndex = rotIndex;
   }
   String getReadString(){return readBuffer;}
   void setReadString(String readBuffer){this.readBuffer = readBuffer;}
-  int getThrust(){return in_thrstValue;}
+  int getThrust(){return out_thrstValue;}
   void setThrust(int out_thrstValue)
   {
     if(this.out_thrstValue>=1000 && this.out_thrstValue<=2000)
@@ -373,38 +368,39 @@ class Thrust extends Shape
   }
   void dispThrustControl()
   {
-    thrst1 = in_thrstValue;
+    textAlign(CENTER,CENTER);
+    int inr_pow = 10;
+    int[] rotValues = renderReadBuffer(readBuffer);
+    in_thrstValue = rotValues[rotIndex]; 
+    thrst1 = out_thrstValue;
     int inr_size = rectSize/3;
     int inr_x = super.pos_x+(rectSize)+inr_size/2;
     int inr_y = super.pos_y+rectCol+(rectSize/4);
-    super.btnClick(inr_x,inr_y,inr_size,inr_size,this,thrt_pow);
+    super.btnClick(inr_x,inr_y,inr_size,inr_size,this,inr_pow);
     rect(inr_x,inr_y , inr_size,inr_size);  //Thrust display circle
     fill(255);
-    text("+",inr_x+(inr_size/2),inr_y+(inr_size/2.5));  //Thrust display circle
-    super.btnClick(inr_x,int(inr_y+(1.25*inr_size)),inr_size,inr_size,this,-thrt_pow);
+    text("+",inr_x,inr_y,inr_size,inr_size-5);  //Thrust display circle
+    super.btnClick(inr_x,int(inr_y+(1.25*inr_size)),inr_size,inr_size,this,-inr_pow);
     rect(inr_x, inr_y+1.25*inr_size, inr_size,inr_size);  //Thrust display circle
     fill(255);
-    text("-",inr_x+(inr_size/2),inr_y+1.6*inr_size);  //Thrust display circle
-    thrst_dir = thrst_dir +in_thrstValue - thrst1;
-    text(in_thrstValue,super.pos_x-2,super.pos_y+(1.5*rectCol));
-  }
-  void thrustValues(){}
-  void thrustValues(int rotIndex)
-  {
-    int[] rotValues = renderReadBuffer(readBuffer);
-    in_thrstValue = rotValues[rotIndex];
+    text("-",inr_x,inr_y+1.25*inr_size,inr_size,inr_size-5);  //Thrust display circle
+    thrst_dir += out_thrstValue - thrst1;
+    text(out_thrstValue,super.pos_x-2,super.pos_y+(1.5*rectCol));
   }
   int[] renderReadBuffer(String readBufferString)
   {
-    String readString = "";
-    int[] rotValues = new int[4];
+    String readString,bufferString;
     int index = readBufferString.indexOf('T');
-    for(int i=0;i<rotValues.length;i++)
+    readString = readBufferString.substring(index);
+    index = readString.indexOf('T');
+    int len = (readString.length()-1)/5;
+    int[] rotValues = new int[len];
+    for(int i=0;i<len;i++)
     {
       prev_index = index+1;
-      index = readBufferString.indexOf(':',index+1);
-      readString = readBufferString.substring(prev_index,index);
-      rotValues[i] = int(readString);
+      index = readString.indexOf(':',prev_index);
+      bufferString = readString.substring(prev_index,index);
+      rotValues[i] = int(bufferString);
     }
     return rotValues;
   }
@@ -527,8 +523,7 @@ class MPU extends Shape
     for(int i=0;i<mpu.length;i++)
       if(i>2) accelValues[i+3] = mpu[i];
     return accelValues;
-  }
-  
+  } 
 }
 class Gyroscope extends MPU
 {
@@ -551,5 +546,3 @@ class Accelerometer extends MPU
     this.gFZ = gFZ;
   }
 }
-//drone.print(String(rX)+":"+String(rY)+":"+String(rZ)+":"+String(gFX)+":"+String(gFY)+":"+String(gFZ)+":");
-//drone.print(String(vin[0])+":"+String(vin[1])+":"+String(int(x[0]))+":"+String(int(x[1]))+":"+String(int(x[2]))+":"+String(int(x[3]))+":;");
