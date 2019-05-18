@@ -5,11 +5,15 @@ It cannot be plugged to the RC of drone.
 This file might receive just on update in future.Update will consist:
 1)Remove all extra unsused or unnecessary code
 Next Update will be in Drone_design, which will be plugable to the actual RC.
+
+18/05/2019
+Update
+1)Designing changes, removed strokes (border)
 */
 /////////////////////////////////////////////////////////////Global Variables/////////////////////////////////////////////////
 float mw;
 int fontSize = 15;
-int rectSize = 80;     // Diameter of rect
+
 int power = 100;
 int thrt_pow = 75;
 
@@ -18,27 +22,19 @@ int thrt_pow = 75;
 
 ////////////////////////////////////////////////Variables for ControlButtons Class////////////////////////////////////////////
 
-int rectX_thrst, rectY_thrst;      // Position of square button
-int rectX_hld, rectY_hld;      // Position of square button
-int rectX_lnd, rectY_lnd;      // Position of square button
-int rectX_role_r, rectY_role_r;      // Position of square button
-int rectX_role_l, rectY_role_l;      // Position of square button
-int rectX_ptch_fwd, rectY_ptch_fwd;      // Position of square button
-int rectX_ptch_bkd, rectY_ptch_bkd;      // Position of square button
-int rectX_yaw_cw, rectY_yaw_cw;      // Position of square button
-int rectX_yaw_ccw, rectY_yaw_ccw;      // Position of square button
+int rectSize = 80;     // Diameter of rect
 
 //////////////////////////////////////////////////Constructor for ControlButtons Class////////////////////////////////////////
 
-ControlButtons thrst = new ControlButtons(rectX_thrst, rectY_thrst, "Lift", 'w');
-ControlButtons lnd = new ControlButtons(rectX_lnd, rectY_lnd, "Drop", 's');
-ControlButtons role_l = new ControlButtons(rectX_role_r, rectY_role_r, "Role Left", '4');
-ControlButtons role_r = new ControlButtons(rectX_role_l, rectY_role_l, "Role Right", '6');
-ControlButtons ptch_fwd = new ControlButtons(rectX_ptch_fwd, rectY_ptch_fwd, "Forward", '8');
-ControlButtons ptch_bkd = new ControlButtons(rectX_ptch_bkd, rectY_ptch_bkd, "Backward", '5');
-ControlButtons yaw_cw = new ControlButtons(rectX_yaw_cw, rectY_yaw_cw, "Yaw +", 'a');
-ControlButtons yaw_ccw = new ControlButtons(rectX_yaw_ccw, rectY_yaw_ccw, "Yaw -", 'd');
-//ControlButtons hld = new ControlButtons((rectX_hld, rectY_hld, "Hold",' ');
+ControlButtons thrst = new ControlButtons("Lift", 'w');
+ControlButtons lnd = new ControlButtons("Drop", 's');
+ControlButtons role_l = new ControlButtons("Role Left", '4');
+ControlButtons role_r = new ControlButtons("Role Right", '6');
+ControlButtons ptch_fwd = new ControlButtons("Forward", '8');
+ControlButtons ptch_bkd = new ControlButtons("Backward", '5');
+ControlButtons yaw_cw = new ControlButtons("Yaw +", 'a');
+ControlButtons yaw_ccw = new ControlButtons("Yaw -", 'd');
+//ControlButtons hld = new ControlButtons("Hold",' ');
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -46,20 +42,15 @@ ControlButtons yaw_ccw = new ControlButtons(rectX_yaw_ccw, rectY_yaw_ccw, "Yaw -
 ////////////////////////////////////////////////Variables for Thrust Class////////////////////////////////////////////////////
 
 int rectCol = 200;
-int rot1_x, rot1_y;
-int rot2_x, rot2_y;
-int rot3_x, rot3_y;
-int rot4_x, rot4_y;
-int rot_x, rot_y;
-int thrt_val_1=1000, thrt_val_2=1000, thrt_val_3=1000, thrt_val_4=1000, thrt_val=1000, prev_val;
+
 
 /////////////////////////////////////////////////Constructor for Thrust Class/////////////////////////////////////////////////
 
-Thrust rot0 = new Thrust(rot_x, rot_y, "Thrust", thrt_val);
-Thrust rot1 = new Thrust(rot1_x, rot1_y, "Rotor 1", thrt_val_1);    //  ccw rotors
-Thrust rot2 = new Thrust(rot2_x, rot2_y, "Rotor 2", thrt_val_2);    //  cw rotors
-Thrust rot3 = new Thrust(rot3_x, rot3_y, "Rotor 3", thrt_val_3);    //  cw rotors
-Thrust rot4 = new Thrust(rot4_x, rot4_y, "Rotor 4", thrt_val_4);    //  ccw rotors
+Thrust rot0 = new Thrust("Thrust", 0);
+Thrust rot1 = new Thrust("Rotor 1",0);    //  ccw rotors
+Thrust rot2 = new Thrust("Rotor 2",1);    //  cw rotors
+Thrust rot3 = new Thrust("Rotor 3",2);    //  cw rotors
+Thrust rot4 = new Thrust("Rotor 4",3);    //  ccw rotors
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -67,13 +58,12 @@ Thrust rot4 = new Thrust(rot4_x, rot4_y, "Rotor 4", thrt_val_4);    //  ccw roto
 ////////////////////////////////////////////////Variables for Battery Class///////////////////////////////////////////////////
 
 float vlt1=11.1,vlt2=7.5;
-int bat1_pos_x, bat1_pos_y,bat2_pos_x,bat2_pos_y;
 int batLen = 100,batWid = 25; 
 
 /////////////////////////////////////////////////Constructor for Battery Class////////////////////////////////////////////////
 
-Battery bt1 = new Battery(vlt1,bat1_pos_x,bat1_pos_y,"Main",11.1);
-Battery bt2 = new Battery(vlt2,bat2_pos_x,bat2_pos_y,"2nd",9);
+Battery bt1 = new Battery(vlt1,"Main",11.1);
+Battery bt2 = new Battery(vlt2,"2nd",9);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -184,19 +174,21 @@ class Shape
     pos_x = (width/20)+i;
     pos_y = (height/20)+j;
   }
-  void drawRect(int len, int br, int curve, int thrst_val, String name)
+  float drawRect(int len, int br, int curve, int thrst_val, String name)
   {
     fill(0);
-    stroke(255);
+    stroke(0);
     rect(pos_x, pos_y, len, br, curve);
     textAlign(CENTER, CENTER);
     fill(255);
     text(name, pos_x+(rectSize/2), pos_y-fontSize);
-    text(thrst_val, pos_x+(rectSize/2), pos_y+rectCol+(rectSize/1.5));
+    float per = ((thrst_val-1000)/10);
+    text(thrst_val, pos_x+(rectSize/2),(pos_y+rectCol+(rectSize/1.5)));
+    return per;
   }
   void drawRect(int len, int br)
   {
-    stroke(255);
+    stroke(0);
     rect(pos_x, pos_y, len, br, 7);
   }
   void btnClick(int x_cord, int y_cord, int x_range,int y_range,Thrust t,int inr)
@@ -234,10 +226,8 @@ class ControlButtons extends Shape
   char dir;
   int i, j, len, br;
   boolean clicked;
-  ControlButtons(int pos_x, int pos_y, String name, char dir)  /////////Only Constructor of the ControlButton Class///////////
+  ControlButtons(String name, char dir)  /////////Only Constructor of the ControlButton Class///////////
   {
-    this.pos_x = pos_x;
-    this.pos_y = pos_y;
     this.name = name;
     this.dir = dir;
   }
@@ -269,10 +259,8 @@ class Thrust extends Shape
   int thrst, thrst_dir, thrst1;
   boolean clickp = false, clickm = false;
 
-  Thrust(int pos_x, int pos_y, String name, int thrst)
+  Thrust(String name, int thrst)
   {
-    this.pos_x = pos_x;
-    this.pos_y = pos_y;
     this.name = name;
     this.thrst = thrst;
   }
@@ -300,9 +288,10 @@ class Thrust extends Shape
     fill(0);
     circle(super.pos_x+(rectSize/2), super.pos_y+rectCol+(rectSize/1.5), rectSize);  //Thrust display circle
     fill(255);
-    super.drawRect(len, br, 7, thrst,name);
+    float per = super.drawRect(len, br, 7, thrst,name);
     dispThrust(thrst);
     dispThrustControl();
+    text(nf(per,0,0)+"%", super.pos_x, super.pos_y,rectSize,rectCol);
   }
   void dispThrust(int thrst)
   {
@@ -311,7 +300,7 @@ class Thrust extends Shape
     float i;
     for(i=100; i<(thrst/5)-105;i+=5)
       rect(super.pos_x+2,super.pos_y+(1.5*rectCol)-i-7,.96*rectSize,(rectCol/20)-5.75,1);
-    stroke(255);
+    stroke(50);
   }
   void dispThrustControl()
   {
@@ -328,7 +317,6 @@ class Thrust extends Shape
     fill(255);
     text("-",inr_x+(inr_size/2),inr_y+1.6*inr_size);  //Thrust display circle
     thrst_dir += thrst - thrst1;
-    text(thrst_dir,super.pos_x-2,super.pos_y+(1.5*rectCol));
   }
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -339,11 +327,9 @@ class Battery extends Shape
   float volt,max;
   int pos_x, pos_y;
   String name;
-  Battery(float volt,int pos_x,int pos_y,String name,float max)
+  Battery(float volt,String name,float max)
   {
     this.volt = volt;
-    this.pos_x = pos_x;
-    this.pos_y = pos_y;
     this.name = name;
     this.max = max;
   }
