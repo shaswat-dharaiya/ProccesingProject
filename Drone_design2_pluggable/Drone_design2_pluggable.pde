@@ -14,7 +14,7 @@ int rectSize = 80;     // Diameter of rect
 int power = 100;
 int thrt_pow = 50;
 String incommingString = "1.23:4.56:7.89:0.12:3.45:6.78:V11.1:7.8:T1000:1000:1000:1000:;";
-String outgoingString = "",val = "";
+String outgoingString = "",val = "",prev_val = "";
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -43,7 +43,7 @@ int rot2_x, rot2_y;
 int rot3_x, rot3_y;
 int rot4_x, rot4_y;
 int rot_x, rot_y;
-int thrt_val_1=1000, thrt_val_2=1000, thrt_val_3=1000, thrt_val_4=1000, thrt_val=1000, prev_val;
+int thrt_val_1=1000, thrt_val_2=1000, thrt_val_3=1000, thrt_val_4=1000, thrt_val=1000;
 
 /////////////////////////////////////////////////Constructor for Thrust Class/////////////////////////////////////////////////
 
@@ -64,7 +64,7 @@ int batLen = 100,batWid = 25;
 
 /////////////////////////////////////////////////Constructor for Battery Class////////////////////////////////////////////////
 
-Battery bt1 = new Battery(vlt1,bat1_pos_x,bat1_pos_y,"Main",11.1,0);
+Battery bt1 = new Battery(vlt1,bat1_pos_x,bat1_pos_y,"Main",12.1,0);
 Battery bt2 = new Battery(vlt2,bat2_pos_x,bat2_pos_y,"2nd",9,1);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -87,7 +87,7 @@ MPU mpu = new MPU();//incommingString);
 void setup() {
   size(1300, 850);
   String portName = Serial.list()[0]; //change the 0 to a 1 or 2 etc. to match your port
-  myPort = new Serial(this, Serial.list()[0], 9600);
+  myPort = new Serial(this, Serial.list()[0], 19200);
   myPort.bufferUntil('\n'); 
   smooth();
   thrst.posRect(rectSize+10, 0);
@@ -197,7 +197,6 @@ void draw() {
    textAlign(CENTER,CENTER);
    text("Establishing connection, please wait..",width/2,height/2);
  }
- //delay(10);
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////This is the SerialEvent Method///////////////////////////////////////////////////
@@ -221,15 +220,18 @@ if (val != null) {
       myPort.write("A");
       println("contact");
       delay(200);
+      val = "";
     }
   }
   else
   {
     myPort.write(outgoingString);
-    if(val.length() == 20)
-    {
-      incommingString = "0.23:4.56:7.89:0.12:3.45:6.78:V11.1:7.8:T"+val;
-    }
+    //int index = val.indexOf('T');
+    //String sub = "";
+    //sub = val.substring(index);
+    //text(sub,900,100);
+    if(val.length() > 60)
+      incommingString = val;
   }
  }
 }
@@ -427,11 +429,10 @@ class Thrust extends Shape
     fill(255);
     text("-",inr_x,inr_y+1.25*inr_size,inr_size,inr_size-5);  //Thrust display circle
     thrst_dir += out_thrstValue - thrst1;
-    //text(out_thrstValue,super.pos_x-2,super.pos_y+(1.5*rectCol));
   }
   int[] renderReadBuffer(String readBufferString)
   {
-    String readString,bufferString;
+    String readString = "",bufferString= "";
     int index = readBufferString.indexOf('T');
     readString = readBufferString.substring(index);
     index = readString.indexOf('T');
@@ -443,6 +444,8 @@ class Thrust extends Shape
       index = readString.indexOf(':',prev_index);
       bufferString = readString.substring(prev_index,index);
       rotValues[i] = int(bufferString);
+      //if(rotValues[i]>2000 || rotValues[i]<1000)
+      //  rotValues[i] = 1000;
     }
     return rotValues;
   }
@@ -504,6 +507,7 @@ class Battery extends Shape
       index = readBufferString.indexOf(':',index+1);
       readString = readBufferString.substring(prev_index,index);
       batValues[i] = float(readString);
+      batValues[i] = float(nf(batValues[i],0,1));
     }
     return batValues;
   }
@@ -533,7 +537,6 @@ class MPU extends Shape
     textAlign(CENTER,CENTER);
     //text(readBuffer,super.pos_x,super.pos_y,mpuBox,mpuBox);
     float[] mpuVal = renderReadBuffer(readBuffer);
-    text("Demo MPU values",super.pos_x,super.pos_y+(i*30)-(mpuBox/4),mpuBox,mpuBox);
     for(int i =1; i<mpuVal.length+1;i++)
       text(str(mpuVal[i-1]),super.pos_x,super.pos_y+(i*30)-(mpuBox/4),mpuBox,mpuBox);
   }
